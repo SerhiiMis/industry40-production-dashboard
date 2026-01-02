@@ -1,5 +1,5 @@
 import psycopg2
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 
 conn = psycopg2.connect(
@@ -50,6 +50,30 @@ for machine_id in machine_ids:
             random.randint(0, 1),
             random.randint(3, 8)
         ))
+
+# Production statuses
+STATUSES = ["RUNNIING", "STOPPED", "ERROR"]
+
+for machine_id in machine_ids:
+    current_time = datetime.now() - timedelta(hours=8)
+
+    for _ in range(30):
+        status = random.choices(
+            STATUSES,
+            weights=[0.75, 0.2, 0.05]
+        )[0]
+
+        cur.execute("""
+            INSERT INTO machine_status
+            (machine_id, timestamp, status)
+            VALUES (%s, %s, %s)
+        """, (
+            machine_id,
+            current_time,
+            status
+        ))
+
+        current_time += timedelta(minutes=random.randint(5, 20))
 
 conn.commit()
 cur.close()
